@@ -23,7 +23,7 @@ UWSGILOG="<%= scope.lookupvar('uwsgi::log_file') %>"
 UWSGIPID="<%= scope.lookupvar('uwsgi::pidfile') %>"
 UWSGISOCKET="<%= scope.lookupvar('uwsgi::socket') %>"
 
-OPTIONS="--daemonize "${UWSGILOG}" --die-on-term --ini <%= @config_file %>"
+OPTIONS="--daemonize "${UWSGILOG}" --die-on-term --ini <%= scope.lookupvar('uwsgi::config_file') %>"
 
 UWSGILOGDIR="${UWSGILOG%/*}"
 UWSGIPIDDIR="${UWSGIPID%/*}"
