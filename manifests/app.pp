@@ -12,8 +12,19 @@
 #    The template used to construct the config file.
 #    Default: 'uwsgi/uwsgi_app.ini.erb'
 #
+# [*uid*]
+#    The user to run the application as.
+#    Default: undef
+#    Ignored if $tyrant == false
+#
+# [*gid*]
+#    The group to run the application as.
+#    Default: undef
+#    Ignored if $tyrant == false
+#
 # [*application_options*]
 #    Options to set in the application config file
+#    uid and gid will be ignored
 #
 # [*environment_variables*]
 #    Extra environment variables to set in the application config file
@@ -25,6 +36,8 @@
 define uwsgi::app (
   $ensure                = 'present',
   $template              = 'uwsgi/uwsgi_app.ini.erb',
+  $uid                   = undef,
+  $gid                   = undef,
   $application_options   = undef,
   $environment_variables = undef,
   $environment_file      = undef,
@@ -46,12 +59,26 @@ define uwsgi::app (
     validate_hash($environment_variables)
   }
 
+  if $::uwsgi::tyrant {
+    validate_string($uid, $gid)
 
-  file { "${uwsgi::app_directory}/${title}.ini":
-    ensure  => $ensure,
-    owner   => $uwsgi::user,
-    group   => $uwsgi::group,
-    mode    => '0644',
-    content => template($template),
+    $app_user = $uid
+    $app_group = $gid
+  } else {
+    $app_user = $uwsgi::user_real
+    $app_group = $uwsgi::group_real
+  }
+
+  file {
+    "${uwsgi::app_directory}/${title}.ini":
+      ensure  => $ensure,
+      owner   => $app_user,
+      group   => $app_group,
+      mode    => '0644',
+      content => template($template);
+    "${::uwsgi::pid_dir}/${title}":
+      ensure => directory,
+      owner   => $app_user,
+      group   => $app_group;
   }
 }

@@ -4,22 +4,29 @@
 # uWSGI main process configuration
 #
 [uwsgi]
-<% if @socket -%>
-socket = <%= @socket %>
+<% if scope.lookupvar('uwsgi::socket') -%>
+socket = <%= scope.lookupvar('uwsgi::socket') %>
 <% end -%>
+<% if scope.lookupvar('uwsgi::plugins_directory') -%>
 plugin-dir <%= scope.lookupvar('uwsgi::plugins_directory') %>
-pidfile = <%= @pidfile %>
-emperor = <%= @app_directory %>
-emperor-tyrant = <%= @tyrant %>
+<% end -%>
+pidfile = <%= scope.lookupvar('uwsgi::pid_file') %>
+emperor = <%= scope.lookupvar('uwsgi::app_directory') %>
+emperor-tyrant = <%= scope.lookupvar('uwsgi::tyrant') %>
 master = true
 autoload = true
 log-date = true
-<% if @log_file -%>
-logto = <%= @log_file %>
+no-orphans = true
+<% if scope.lookupvar('uwsgi::log_file') -%>
+logto = <%= scope.lookupvar('uwsgi::log_file') %>
+<% end -%>
+<% if @os['family'] == 'Debian' -%>
+uid = <%= scope.lookupvar('uwsgi::user_real') %>
+gid = <%= scope.lookupvar('uwsgi::group_real') %>
 <% end -%>
 <%
-if @emperor_options
-  @emperor_options.each do |key, value|
+if scope.lookupvar('uwsgi::emperor_options')
+  scope.lookupvar('uwsgi::emperor_options').each do |key, value|
 -%>
 <%= key %> = <%= value%>
 <%

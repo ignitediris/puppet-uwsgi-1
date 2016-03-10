@@ -51,7 +51,7 @@
 #
 # [*log_file*]
 #    The location of the uwsgi emperor log.
-#    Default: '/var/log/uwsgi/uwsgi-emperor.log'
+#    Default: '/var/log/uwsgi/emperor.log'
 #
 # [*log_rotate]
 #    Whether or not to deploy a logrotate script.
@@ -102,19 +102,22 @@ class uwsgi (
     $service_enable        = $::uwsgi::params::service_enable,
     $service_provider      = $::uwsgi::params::service_provider,
     $manage_service_file   = $::uwsgi::params::manage_service_file,
+    $manage_ini_file       = $::uwsgi::params::manage_ini_file,
     $config_file           = $::uwsgi::params::config_file,
     $log_file              = $::uwsgi::params::log_file,
     $log_rotate            = $::uwsgi::params::log_rotate,
     $app_directory         = $::uwsgi::params::app_directory,
     $tyrant                = $::uwsgi::params::tyrant,
     $setup_python          = $::uwsgi::params::setup_python,
-    $pidfile               = $::uwsgi::params::pidfile,
+    $pid_file              = $::uwsgi::params::pid_file,
     $socket                = $::uwsgi::params::socket,
     $purge                 = $::uwsgi::params::purge,
     $emperor_options       = undef,
     $hiera_hash            = false,
     $user                  = $::uwsgi::params::user,
     $group                 = $::uwsgi::params::group,
+    $uwsgi_user            = $::uwsgi::params::uwsgi_user,
+    $uwsgi_group           = $::uwsgi::params::uwsgi_group,
     $apps                  = {},
     $plugins               = {},
     $plugins_directory     = $::uwsgi::params::plugins_directory,
@@ -125,7 +128,26 @@ class uwsgi (
     validate_hash($plugins)
     validate_hash($apps)
     validate_bool($purge)
-    validate_absolute_path($plugins_directory)
+
+    validate_absolute_path($log_file, $pid_file)
+
+    if $plugins_directory {
+      validate_absolute_path($plugins_directory)
+    }
+
+    $pid_filename = regsubst($pid_file, '.*/', '')
+    $log_filename = regsubst($log_file, '.*/', '')
+
+    $pid_dir = regsubst($pid_file, "/${pid_filename}", '')
+    $log_dir = regsubst($log_file, "/${log_filename}", '')
+
+    if $tyrant {
+      $user_real = $uwsgi_user
+      $group_real = $uwsgi_group
+    } else {
+      $user_real = $user
+      $group_real = $group
+    }
 
     class{'::uwsgi::install': }->
     class{'::uwsgi::config': }~>

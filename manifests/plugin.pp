@@ -5,9 +5,16 @@ define uwsgi::plugin (
 ){
   include ::uwsgi
 
-  exec{"uwsgi --build-plugin ${url}":
-    cwd     => $::uwsgi::plugins_directory,
-    creates => "${::uwsgi::plugins_directory}/${plugin_name}_plugin.so",
+  if $::uwsgi::emeror_mode and $url != 'package' {
+    exec{"uwsgi --build-plugin ${url}":
+      cwd     => $::uwsgi::plugins_directory,
+      creates => "${::uwsgi::plugins_directory}/${plugin_name}_plugin.so",
+    }
   }
 
+  else {
+    package { $plugin_name:
+      ensure => installed;
+    }
+  }
 }

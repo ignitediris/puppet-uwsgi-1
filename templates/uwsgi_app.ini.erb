@@ -4,6 +4,10 @@
 # uwsgi app config for '<%= @name %>'
 #
 [uwsgi]
+<%- if !scope.lookupvar('uwsgi::tyrant') -%>
+uid = <%= @app_user %>
+gid = <%= @app_group %>
+<% end -%>
 <%- if @application_options -%>
 <%- @application_options.each do |key, value| -%>
     <%- if value.is_a? Array -%>
@@ -11,7 +15,9 @@
 <%= key %> = <%= v %>
        <%- end -%>
     <%- else -%>
+      <%- if key != 'uid' and key != 'gid' -%>
 <%= key %> = <%= value %>
+      <%- end -%>
     <%- end -%>
 <% end -%>
 <% end -%>
